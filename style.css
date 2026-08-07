@@ -1,0 +1,492 @@
+/* =========================================================
+   AL Learning Games — shared stylesheet
+   ========================================================= */
+
+:root {
+  --surface-0: #f4f6fb;
+  --surface-1: #ffffff;
+  --surface-2: #eef1f8;
+
+  --border: #e1e5ee;
+  --border-strong: #c7cee0;
+  --border-accent: #6c7bf5;
+
+  --text-primary: #1c2130;
+  --text-secondary: #5a6178;
+  --text-muted: #9aa1b5;
+  --text-accent: #4453e8;
+
+  --bg-accent: #e7e9fd;
+  --bg-success: #dcf5e8;
+  --bg-warning: #fdf0d8;
+  --bg-danger: #fbe2e2;
+
+  --text-success: #1d9e75;
+  --text-warning: #b5790b;
+  --text-danger: #e24b4a;
+
+  --font-sans: 'Segoe UI', 'Noto Sans Thai', 'Sarabun', system-ui, -apple-system, sans-serif;
+  --radius: 12px;
+
+  --shadow-sm: 0 1px 3px rgba(20, 24, 45, 0.06);
+  --shadow-md: 0 6px 18px rgba(20, 24, 45, 0.10);
+}
+
+* { box-sizing: border-box; }
+
+/* Guarantee the [hidden] attribute always wins over any component's
+   own `display` declaration (e.g. flex containers toggled via .hidden = true). */
+[hidden] { display: none !important; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: var(--surface-0);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.screen { min-height: 100vh; }
+
+/* ---------------- Hub ---------------- */
+.hub-screen {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 48px 20px 64px;
+}
+
+.hub-header { text-align: center; margin-bottom: 40px; }
+.hub-header h1 { font-size: 32px; margin: 0 0 8px; }
+.hub-subtitle { color: var(--text-secondary); font-size: 15px; margin: 0; }
+
+.game-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 20px;
+}
+
+.game-card {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.game-card:not(.disabled):hover {
+  transform: translateY(-2px);
+  border-color: var(--border-accent);
+  box-shadow: var(--shadow-md);
+}
+
+.game-card.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.game-card-icon { font-size: 42px; line-height: 1; }
+.game-card-title { font-size: 19px; margin: 4px 0 0; }
+.game-card-desc {
+  color: var(--text-secondary);
+  font-size: 13.5px;
+  margin: 0;
+  min-height: 38px;
+}
+
+.game-card-footer {
+  margin-top: 12px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.badge {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--bg-accent);
+  color: var(--text-accent);
+}
+
+/* .play-btn is used both as a real <a> (hub "Play" links, working via
+   plain page navigation) and as a <button> (restart, disabled "Coming
+   Soon") so it needs anchor-safe display rules. */
+.play-btn {
+  display: inline-block;
+  background: var(--text-accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  text-align: center;
+  cursor: pointer;
+}
+.play-btn:hover { filter: brightness(1.08); }
+.play-btn:disabled,
+.play-btn[disabled] { background: var(--border-strong); cursor: not-allowed; }
+
+/* ---------------- Back button (real link to ../../index.html) ---------------- */
+.back-btn {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 100;
+  display: inline-block;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-decoration: none;
+  box-shadow: var(--shadow-sm);
+}
+.back-btn:hover { border-color: var(--border-accent); color: var(--text-accent); }
+
+/* ---------------- Game screen shell ---------------- */
+.game-screen { background: var(--surface-0); }
+.game-root {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 64px 16px 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.load-error { color: var(--text-danger); text-align: center; margin-top: 80px; }
+
+/* ---------------- CSV upload button ---------------- */
+.csv-upload-wrap {
+  display: inline-flex;
+  align-items: center;
+}
+.csv-upload-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 7px 14px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+.csv-upload-label:hover { border-color: var(--border-accent); color: var(--text-accent); }
+.csv-upload-label input { display: none; }
+
+/* ---------------- Toast ---------------- */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--text-primary);
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 999px;
+  font-size: 13.5px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  z-index: 200;
+  box-shadow: var(--shadow-md);
+}
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* =========================================================
+   Shared game-title / header bits
+   ========================================================= */
+.game-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+/* =========================================================
+   Answer feedback (shared between games)
+   ========================================================= */
+.word-result {
+  font-size: 20px;
+}
+.word-result.correct {
+  color: var(--text-success);
+  font-weight: 500;
+}
+.word-result.wrong {
+  color: var(--text-danger);
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+}
+.word-timeout {
+  color: var(--text-danger);
+  font-size: 13px;
+  display: block;
+  margin-bottom: 4px;
+}
+
+/* =========================================================
+   Quiz panel (shared visual language for choices/timer)
+   ========================================================= */
+.quiz-panel {
+  width: 100%;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  box-shadow: var(--shadow-sm);
+}
+
+.quiz-timerbar {
+  height: 6px;
+  width: 100%;
+  border-radius: 999px;
+  background: var(--surface-2);
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+.quiz-timerbar-fill {
+  height: 100%;
+  width: 100%;
+  background: var(--text-success);
+  transition: width 0.1s linear, background-color 0.3s ease;
+}
+.quiz-timerbar-fill.warn { background: var(--text-warning); }
+.quiz-timerbar-fill.danger { background: var(--text-danger); }
+
+.quiz-word {
+  font-size: 26px;
+  font-weight: 700;
+  text-align: center;
+  margin: 6px 0 4px;
+  letter-spacing: 0.5px;
+}
+
+.quiz-hint {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 13.5px;
+  margin-bottom: 14px;
+}
+.quiz-hint .hint-en { color: var(--text-muted); font-style: italic; }
+
+.quiz-choices {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.quiz-choice-btn {
+  background: var(--surface-2);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 10px;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  transition: border-color 0.15s ease, transform 0.1s ease;
+}
+.quiz-choice-btn:hover:not(:disabled) {
+  border-color: var(--border-accent);
+  transform: translateY(-1px);
+}
+.quiz-choice-btn:disabled { cursor: default; }
+.quiz-choice-btn.correct { border-color: var(--text-success); background: var(--bg-success); color: var(--text-success); }
+.quiz-choice-btn.wrong { border-color: var(--text-danger); background: var(--bg-danger); color: var(--text-danger); }
+
+.quiz-result-area {
+  text-align: center;
+  min-height: 30px;
+  margin-top: 10px;
+}
+
+.cat-badge {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 999px;
+  margin-bottom: 10px;
+}
+
+@media (max-width: 420px) {
+  .quiz-choices { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .quiz-word { font-size: 22px; }
+}
+
+/* =========================================================
+   Ghost Runner
+   ========================================================= */
+.gr-wrap {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.gr-setup {
+  width: 100%;
+  max-width: 420px;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  box-shadow: var(--shadow-sm);
+}
+.gr-setup-label { margin: 0; color: var(--text-secondary); font-size: 14px; }
+
+.gr-mode-row { display: flex; gap: 10px; }
+.gr-mode-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  background: var(--surface-2);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 18px;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+.gr-mode-btn span { font-size: 11px; font-weight: 400; color: var(--text-muted); }
+.gr-mode-btn:hover { border-color: var(--border-accent); color: var(--text-accent); }
+
+.gr-play { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+
+.gr-hud {
+  width: 100%;
+  max-width: 600px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 600;
+  font-size: 14px;
+}
+.gr-hearts { font-size: 16px; letter-spacing: 2px; }
+.gr-combo { color: var(--text-warning); }
+
+#gr-canvas {
+  width: 100%;
+  max-width: 600px;
+  height: auto;
+  aspect-ratio: 600 / 160;
+  background: #eef1f8;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  touch-action: none;
+}
+
+.gr-gameover {
+  width: 100%;
+  max-width: 420px;
+  text-align: center;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 32px 20px;
+  box-shadow: var(--shadow-sm);
+}
+.gr-gameover h2 { margin: 0 0 8px; }
+.gr-gameover p { color: var(--text-secondary); margin: 0 0 16px; }
+
+/* =========================================================
+   Word Clinic
+   ========================================================= */
+.wc-wrap {
+  width: 100%;
+  max-width: 460px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.wc-progress-wrap { width: 100%; }
+.wc-progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+.wc-progress-bar {
+  height: 8px;
+  width: 100%;
+  border-radius: 999px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+.wc-progress-fill {
+  height: 100%;
+  background: var(--text-accent);
+  transition: width 0.25s ease;
+}
+
+.wc-card {
+  width: 100%;
+  background: var(--surface-1);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px 20px;
+  box-shadow: var(--shadow-sm);
+  transition: border-color 0.25s ease, background-color 0.25s ease;
+}
+.wc-card.cured { border-color: var(--text-success); background: var(--bg-success); }
+.wc-card.sick { border-color: var(--text-danger); background: var(--bg-danger); }
+
+.wc-stamp {
+  text-align: center;
+  font-weight: 700;
+  font-size: 15px;
+  margin-bottom: 8px;
+}
+.wc-stamp.cured-text { color: var(--text-success); }
+.wc-stamp.sick-text { color: var(--text-danger); }
+
+.wc-box-label {
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 8px;
+}
+
+.wc-done {
+  text-align: center;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 32px 20px;
+  box-shadow: var(--shadow-sm);
+}
+.wc-done h2 { margin: 0 0 8px; }
+.wc-done p { color: var(--text-secondary); margin: 0; }
