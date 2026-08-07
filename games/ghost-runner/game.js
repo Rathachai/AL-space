@@ -15,7 +15,7 @@
   const FALLBACK_WORDS = [
     { w: 'วิทยาศาสตร์', b: 'วิทยา...าสตร์', m: 'ศ', h: 'วิชาที่ศึกษาธรรมชาติ', e: 'science', c: 'การันต์ซับซ้อน' },
     { w: 'เกษตร', b: 'เก...ตร', m: 'ษ', h: 'การปลูกพืชเลี้ยงสัตว์', e: 'agriculture', c: 'ตัวสะกดผิดมาตรา' },
-    { w: 'คอมพิวเตอร์', b: 'คอม...ิวเตอร์', m: 'พ', h: 'เครื่องประมวลผลข้อมูล', e: 'computer', c: 'คำทับศัพท์' },
+    { w: 'คอมพิวเตอร์', b: 'คอม...วเตอร์', m: 'พิ', h: 'เครื่องประมวลผลข้อมูล', e: 'computer', c: 'คำทับศัพท์' },
     { w: 'อยุธยา', b: 'อยุ...ยา', m: 'ธ', h: 'อดีตเมืองหลวงของไทย', e: 'Ayutthaya', c: 'ชื่อเฉพาะ' },
   ]
 
@@ -25,6 +25,9 @@
   const GHOST_EDGE = 30
   const GHOST_HIT = HERO_SX - 60
   const OBS_STOP = HERO_SX + 80
+  const GHOST_ATTACK_SX = HERO_SX - 20 // how close the ghost leaps in to attack
+  const GHOST_LEAP_FRAMES = 16 // duration of the leap-in attack
+  const GHOST_HOP_HEIGHT = 22 // extra upward arc while leaping
   const RUN_SPEED_START = 3.5
   const RUN_SPEED_MAX = 5.5
   const RUN_SPEED_ACCEL = 0.0007
@@ -56,8 +59,11 @@
     let obsSX = W + 60
     let obsEmoji = randomAnimal()
     let ghostSX = GHOST_HOME
+    let ghostHop = 0
     let heroY = GY, heroVy = 0
     let heroHitTimer = 0
+    let hitStartGhostSX = GHOST_HIT
+    let hitAttackTriggered = false
     let postJumpObs = false
     let blockedAt = 0, ghostStartSX = GHOST_HOME
     let currentWord = null, currentChoices = []
@@ -74,8 +80,10 @@
       obsSX = W + 60
       obsEmoji = randomAnimal()
       ghostSX = GHOST_HOME
+      ghostHop = 0
       heroY = GY; heroVy = 0
       heroHitTimer = 0
+      hitAttackTriggered = false
       postJumpObs = false
       particles = []
       updateHUD(refs, { hearts, score, combo })
@@ -169,6 +177,8 @@
       updateHUD(refs, { hearts, score, combo })
       hideQuiz(refs)
       heroHitTimer = 55
+      hitStartGhostSX = ghostSX
+      hitAttackTriggered = false
     }
 
     function gameOver() {
@@ -200,12 +210,12 @@
       const bob = Math.sin(frame * 0.28) * 2.5
       const ghostFloat = Math.sin(frame * 0.20) * 4
 
-      // ghost
+      // ghost — ghostHop lifts it during the HIT leap-attack
       c.save()
       c.font = '36px sans-serif'
       c.textAlign = 'center'
       c.textBaseline = 'alphabetic'
-      c.fillText('👻', ghostSX, 90 + ghostFloat)
+      c.fillText('👻', ghostSX, 90 + ghostFloat - ghostHop)
       c.restore()
 
       // danger bar above ghost during BLOCKED
@@ -221,8 +231,8 @@
         c.fillRect(bx, by, barW * t, 6)
       }
 
-      // obstacle
-      if (state !== 'HIT' || obsSX > -60) {
+      // obstacle — hidden during HIT, the ghost is the one attacking now
+      if (state !== 'HIT') {
         c.save()
         c.font = '30px sans-serif'
         c.textAlign = 'center'
@@ -230,7 +240,7 @@
         c.restore()
       }
 
-      // hero
+      // hero — stays put at HERO_SX; the ghost leaps in to attack it
       let alpha = 1
       if (state === 'HIT') alpha = (Math.floor(frame / 4) % 2 === 0) ? 1 : 0.3
       c.save()
@@ -265,15 +275,21 @@
         obsSX -= runSpeed
 
         if (postJumpObs) {
+          // The just-jumped obstacle is still finishing its job of pushing
+          // the ghost back toward GHOST_EDGE. Don't check for a new BLOCKED
+          // trigger yet — otherwise this same obstacle (already past the
+          // hero, so its x already satisfies obsSX <= OBS_STOP) would
+          // instantly re-trigger the quiz before the ghost has been pushed
+          // back and a fresh obstacle has had a chance to run in.
           obsSX -= runSpeed * 1.5
           if (obsSX <= ghostSX + 20) ghostSX = Math.max(GHOST_EDGE, obsSX - 20)
           if (ghostSX <= GHOST_EDGE || obsSX < -60) {
             postJumpObs = false
             spawnObs()
           }
+        } else if (obsSX <= OBS_STOP) {
+          onBlocked()
         }
-
-        if (obsSX <= OBS_STOP) onBlocked()
       } else if (state === 'BLOCKED') {
         const t = Math.min(1, (performance.now() - blockedAt) / (modeTime * 1000))
         ghostSX = ghostStartSX + (GHOST_HIT - ghostStartSX) * t
@@ -287,11 +303,27 @@
         if (obsSX <= ghostSX + 20) ghostSX = Math.max(GHOST_EDGE, obsSX - 20)
         if (heroY >= GY) { heroY = GY; state = 'RUN'; postJumpObs = true }
       } else if (state === 'HIT') {
-        ghostSX = Math.max(GHOST_HOME, ghostSX - 5)
+        // The hero stays put; the ghost leaps in to attack (a quick hop
+        // toward the hero), then retreats back home once the attack lands.
+        const elapsed = 55 - heroHitTimer
+        if (elapsed < GHOST_LEAP_FRAMES) {
+          const t = Math.min(1, elapsed / GHOST_LEAP_FRAMES)
+          ghostSX = hitStartGhostSX + (GHOST_ATTACK_SX - hitStartGhostSX) * t
+          ghostHop = Math.sin(t * Math.PI) * GHOST_HOP_HEIGHT
+          if (!hitAttackTriggered && t >= 1) {
+            hitAttackTriggered = true
+            spawnParticles('wrong', GHOST_ATTACK_SX, GY - 40)
+          }
+        } else {
+          ghostHop = 0
+          ghostSX = Math.max(GHOST_HOME, ghostSX - 5) // retreat back home
+        }
         heroHitTimer--
         if (heroHitTimer <= 0) {
           if (hearts <= 0) { gameOver(); return }
           state = 'RUN'
+          ghostSX = GHOST_HOME
+          ghostHop = 0
           spawnObs()
         }
       }
